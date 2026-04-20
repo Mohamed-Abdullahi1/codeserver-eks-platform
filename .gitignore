@@ -1,0 +1,15 @@
+.DS_Store
+node_modules/
+*.log
+
+.env
+.env.*
+
+
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+.vscode/
+.idea/
