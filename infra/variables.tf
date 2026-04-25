@@ -25,3 +25,8 @@ variable "argocd_chart_version" {
   type        = string
   default     = "7.7.0"
 }
+
+variable "domain_name" {
+  description = "Root domain for Route 53 hosted zone"
+  type        = string
+}
