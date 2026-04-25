@@ -26,3 +26,12 @@ module "eks" {
   instance_types = ["t3.medium"]
 
 }
+
+module "argocd" {
+  source = "./modules/argocd"
+
+  namespace     = var.argocd_namespace
+  chart_version = var.argocd_chart_version
+
+  depends_on = [module.eks]
+}
