@@ -13,3 +13,15 @@ variable "private_subnet_cidrs" {
 variable "availability_zones" {
   type = list(string)
 }
+
+variable "argocd_namespace" {
+  description = "Namespace where ArgoCD will be installed"
+  type        = string
+  default     = "argocd"
+}
+
+variable "argocd_chart_version" {
+  description = "Version of the ArgoCD Helm chart"
+  type        = string
+  default     = "7.7.0"
+}
