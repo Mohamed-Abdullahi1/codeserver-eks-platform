@@ -1,0 +1,26 @@
+variable "oidc_provider_arn" {
+  description = "ARN of the EKS OIDC provider"
+  type        = string
+}
+
+variable "oidc_provider_url" {
+  description = "OIDC provider URL without https://"
+  type        = string
+}
+
+variable "hosted_zone_id" {
+  description = "Route 53 hosted zone ID ExternalDNS can manage"
+  type        = string
+}
+
+variable "namespace" {
+  description = "Kubernetes namespace for ExternalDNS"
+  type        = string
+  default     = "external-dns"
+}
+
+variable "service_account_name" {
+  description = "Kubernetes service account name for ExternalDNS"
+  type        = string
+  default     = "external-dns"
+}
