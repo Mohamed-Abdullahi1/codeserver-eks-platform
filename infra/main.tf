@@ -40,3 +40,11 @@ module "route53" {
   source      = "./modules/route53"
   domain_name = var.domain_name
 }
+
+module "external_dns_irsa" {
+  source = "./modules/external-dns-irsa"
+
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+  hosted_zone_id    = module.route53.zone_id
+}
