@@ -29,3 +29,8 @@ output "route53_zone_id" {
 output "route53_name_servers" {
   value = module.route53.name_servers
 }
+
+output "external_dns_role_arn" {
+  description = "ARN of the IAM role used by ExternalDNS"
+  value       = module.external_dns_irsa.role_arn
+}
