@@ -16,3 +16,5 @@ terraform.tfvars
 
 
 .vscode/
+
+secret.yaml
