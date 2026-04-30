@@ -11,8 +11,9 @@ spec:
     metadata:
       labels: 
         app: code-server
-
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
       - name: code-server
         image: codercom/code-server
