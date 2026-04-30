@@ -48,3 +48,11 @@ module "external_dns_irsa" {
   oidc_provider_url = module.eks.oidc_provider_url
   hosted_zone_id    = module.route53.zone_id
 }
+
+module "eks_ebs_csi" {
+  source = "./modules/eks-ebs-csi"
+
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+}
