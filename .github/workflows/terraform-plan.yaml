@@ -1,12 +1,19 @@
 name: Terraform Plan
 
 on:
-  push:
-    paths:
-      - "infra/**"
   pull_request:
     paths:
       - "infra/**"
+      - ".github/workflows/terraform-plan.yaml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: terraform-plan-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   terraform-plan:
@@ -17,21 +24,26 @@ jobs:
         working-directory: infra
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Init
+      - name: Terraform init
         run: terraform init
 
-      - name: Format Check
-        run: terraform fmt -check
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
 
-      - name: Validate
+      - name: Terraform validate
         run: terraform validate
 
-      - name: Plan
+      - name: Terraform plan
         run: terraform plan
-        
