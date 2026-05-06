@@ -30,30 +30,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials (OIDC)
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: eu-west-2
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
         run: |
-          docker build -t $ECR_REPOSITORY:${{ github.sha }} .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} .
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          image-ref: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           format: table
           exit-code: 0
-
-      - name: Tag image
-        run: |
-          docker tag $ECR_REPOSITORY:${{ github.sha }} \
-          $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
 
       - name: Push image to ECR
         run: |
