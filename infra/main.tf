@@ -27,15 +27,6 @@ module "eks" {
 
 }
 
-module "argocd" {
-  source = "./modules/argocd"
-
-  namespace     = var.argocd_namespace
-  chart_version = var.argocd_chart_version
-
-  depends_on = [module.eks]
-}
-
 module "route53" {
   source      = "./modules/route53"
   domain_name = var.domain_name
