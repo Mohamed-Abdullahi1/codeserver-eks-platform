@@ -1,0 +1,57 @@
+name: ArgoCD Bootstrap
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "bootstrap/argocd/**"
+      - ".github/workflows/argocd-bootstrap.yaml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: argocd-bootstrap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  argocd-bootstrap:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: bootstrap/argocd
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region eu-west-2 \
+            --name codeserver-cluster
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        run: terraform init 
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
