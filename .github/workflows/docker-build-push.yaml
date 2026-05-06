@@ -1,0 +1,72 @@
+name: Docker Build & Push
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Dockerfile"
+      - "app/**"
+      - ".github/workflows/docker-build-push.yaml"
+
+permissions:
+  id-token: write
+  contents: write
+
+concurrency:
+  group: docker-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: eu-west-2
+      ECR_REPOSITORY: code-server
+      ECR_REGISTRY: 454374565233.dkr.ecr.eu-west-2.amazonaws.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:${{ github.sha }} .
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          format: table
+          exit-code: 0
+
+      - name: Tag image
+        run: |
+          docker tag $ECR_REPOSITORY:${{ github.sha }} \
+          $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+
+      - name: Push image to ECR
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+
+      - name: Update Kubernetes manifest
+        run: |
+          sed -i "s|image: .*code-server:.*|image: $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}|" kubernetes/deployments/code-server/deployment.yaml
+
+      - name: Commit and push updated manifest
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add kubernetes/deployments/code-server/deployment.yaml
+          git commit -m "chore: update image tag to ${{ github.sha }}" || echo "No changes to commit"
+          git push
