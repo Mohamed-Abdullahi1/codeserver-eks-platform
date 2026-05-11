@@ -55,3 +55,27 @@ jobs:
 
       - name: Terraform apply
         run: terraform apply -auto-approve
+
+      - name: Install cert-manager CRDs
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.crds.yaml
+
+      - name: Create code-server secret
+        run: |
+          kubectl create namespace code-server --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create secret generic code-server-secret \
+            --namespace code-server \
+            --from-literal=PASSWORD=${{ secrets.CODE_SERVER_PASSWORD }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply root app
+        run: |
+          kubectl apply -f ../../kubernetes/apps/root-app.yaml
+
+      - name: Wait for ArgoCD to sync
+        run: |
+          sleep 60
+
+      - name: Apply cluster issuer
+        run: |
+          kubectl apply -f ../../kubernetes/deployments/cert-manager/
