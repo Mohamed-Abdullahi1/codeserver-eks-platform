@@ -32,6 +32,31 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: eu-west-2
 
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --region eu-west-2 \
+            --name codeserver-cluster
+
+      - name: Delete ArgoCD applications
+        run: |
+          kubectl delete applications --all -n argocd --ignore-not-found=true
+          sleep 30
+
+      - name: Delete Kubernetes load balancers
+        run: |
+          kubectl delete svc --all-namespaces -l app.kubernetes.io/name=ingress-nginx --ignore-not-found=true
+          sleep 30
+
+      - name: Delete AWS load balancers
+        run: |
+          LB_ARNS=$(aws elbv2 describe-load-balancers --region eu-west-2 --query 'LoadBalancers[*].LoadBalancerArn' --output text)
+          for ARN in $LB_ARNS; do
+            echo "Deleting load balancer: $ARN"
+            aws elbv2 delete-load-balancer --load-balancer-arn $ARN --region eu-west-2
+          done
+          sleep 30
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
