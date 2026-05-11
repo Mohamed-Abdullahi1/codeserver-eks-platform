@@ -18,8 +18,11 @@ spec:
             ingressClassName: nginx
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
+              nginx.ingress.kubernetes.io/rewrite-target: /
             hosts:
               - prometheus.codeserver.moabdullahi.uk
+            paths:
+              - /
             tls:
               - secretName: prometheus-tls
                 hosts:
@@ -57,5 +60,3 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-
-
