@@ -29,6 +29,8 @@ jobs:
       AWS_REGION: eu-west-2
       TF_VAR_hosted_zone_id: ${{ secrets.TF_VAR_hosted_zone_id }}
       TF_VAR_ecr_repository_url: ${{ secrets.TF_VAR_ECR_REPOSITORY_URL }}
+      TF_VAR_domain_name: codeserver.moabdullahi.uk
+      TF_VAR_local_admin_arn: ${{ secrets.TF_VAR_LOCAL_ADMIN_ARN }}
       
     steps:
       - name: Checkout repository
