@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - "Dockerfile"
-      - "app/**"
+      - "code-server/**"
       - ".github/workflows/docker-build-push.yaml"
   workflow_dispatch:
 
