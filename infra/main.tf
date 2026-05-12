@@ -19,7 +19,7 @@ module "eks" {
   max_size       = 3
   instance_types = ["t3.medium"]
 
-  local_admin_arn = var.local_admin_arn
+  local_admin_arn         = var.local_admin_arn
   github_actions_role_arn = var.github_actions_role_arn
 }
 
