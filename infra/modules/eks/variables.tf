@@ -32,3 +32,8 @@ variable "instance_types" {
   description = "List of instance types for the node group"
   type        = list(string)
 }
+
+variable "local_admin_arn" {
+  description = "IAM user or role ARN for local kubectl admin access"
+  type        = string
+}
