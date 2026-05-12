@@ -37,3 +37,8 @@ variable "local_admin_arn" {
   description = "IAM user or role ARN for local kubectl admin access"
   type        = string
 }
+
+variable "github_actions_role_arn" {
+  description = "IAM role ARN used by GitHub Actions for EKS access"
+  type        = string
+}
