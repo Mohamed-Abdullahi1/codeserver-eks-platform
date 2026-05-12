@@ -30,3 +30,8 @@ variable "domain_name" {
   description = "Root domain for Route 53 hosted zone"
   type        = string
 }
+
+variable "local_admin_arn" {
+  description = "IAM ARN for local kubectl admin access"
+  type        = string
+}

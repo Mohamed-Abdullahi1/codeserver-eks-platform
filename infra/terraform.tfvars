@@ -16,3 +16,5 @@ availability_zones = [
 ]
 
 domain_name = "codeserver.moabdullahi.uk"
+
+local_admin_arn = "arn:aws:iam::454374565233:user/mo"
