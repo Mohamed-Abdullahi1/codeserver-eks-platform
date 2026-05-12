@@ -41,13 +41,13 @@ jobs:
       - name: Delete ArgoCD applications
         continue-on-error: true
         run: |
-          kubectl delete applications --all -n argocd --ignore-not-found=true
+          kubectl delete applications --all -n argocd --ignore-not-found=true || true
           sleep 30
 
       - name: Delete ingress-nginx service
         continue-on-error: true
         run: |
-          kubectl delete svc --all-namespaces -l app.kubernetes.io/name=ingress-nginx --ignore-not-found=true
+          kubectl delete svc --all-namespaces -l app.kubernetes.io/name=ingress-nginx --ignore-not-found=true || true
           sleep 30
 
       - name: Delete project AWS load balancers
