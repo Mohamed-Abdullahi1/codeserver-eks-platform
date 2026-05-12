@@ -22,6 +22,20 @@ jobs:
     env:
       AWS_REGION: eu-west-2
 
+      TF_VAR_vpc_cidr: 10.0.0.0/16
+
+      TF_VAR_public_subnet_cidrs: '["10.0.1.0/24","10.0.2.0/24"]'
+
+      TF_VAR_private_subnet_cidrs: '["10.0.11.0/24","10.0.12.0/24"]'
+
+      TF_VAR_availability_zones: '["eu-west-2a","eu-west-2b"]'
+
+      TF_VAR_domain_name: codeserver.moabdullahi.uk
+
+      TF_VAR_local_admin_arn: ${{ secrets.TF_VAR_LOCAL_ADMIN_ARN }}
+
+      TF_VAR_github_actions_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,10 +47,11 @@ jobs:
           aws-region: eu-west-2
 
       - name: Update kubeconfig
+        continue-on-error: true
         run: |
           aws eks update-kubeconfig \
             --region eu-west-2 \
-            --name codeserver-cluster
+            --name codeserver-cluster || true
 
       - name: Delete ArgoCD applications
         continue-on-error: true
@@ -51,26 +66,31 @@ jobs:
           sleep 30
 
       - name: Delete project AWS load balancers
+        continue-on-error: true
         run: |
           LB_ARNS=$(aws elbv2 describe-load-balancers \
             --region eu-west-2 \
             --query 'LoadBalancers[*].LoadBalancerArn' \
             --output text)
+
           for ARN in $LB_ARNS; do
             CLUSTER_TAG=$(aws elbv2 describe-tags \
               --resource-arns "$ARN" \
               --region eu-west-2 \
               --query "TagDescriptions[0].Tags[?Key=='kubernetes.io/cluster/codeserver-cluster'].Value" \
               --output text)
+
             if [ "$CLUSTER_TAG" = "owned" ] || [ "$CLUSTER_TAG" = "shared" ]; then
               echo "Deleting load balancer owned by codeserver-cluster: $ARN"
+
               aws elbv2 delete-load-balancer \
                 --load-balancer-arn "$ARN" \
-                --region eu-west-2
+                --region eu-west-2 || true
             else
               echo "Skipping unrelated load balancer: $ARN"
             fi
           done
+
           sleep 60
 
       - name: Setup Terraform
