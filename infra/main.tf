@@ -8,23 +8,18 @@ module "vpc" {
 }
 
 module "eks" {
-
   source = "./modules/eks"
 
-  cluster_name = "codeserver-cluster"
-
+  cluster_name       = "codeserver-cluster"
   kubernetes_version = "1.32"
-
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  desired_size = 2
-
-  min_size = 1
-
-  max_size = 3
-
+  desired_size   = 2
+  min_size       = 1
+  max_size       = 3
   instance_types = ["t3.medium"]
 
+  local_admin_arn = var.local_admin_arn
 }
 
 module "route53" {
