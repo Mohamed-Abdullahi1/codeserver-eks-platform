@@ -43,19 +43,33 @@ jobs:
           kubectl delete applications --all -n argocd --ignore-not-found=true
           sleep 30
 
-      - name: Delete Kubernetes load balancers
+      - name: Delete ingress-nginx service
         run: |
           kubectl delete svc --all-namespaces -l app.kubernetes.io/name=ingress-nginx --ignore-not-found=true
           sleep 30
 
-      - name: Delete AWS load balancers
+      - name: Delete project AWS load balancers
         run: |
-          LB_ARNS=$(aws elbv2 describe-load-balancers --region eu-west-2 --query 'LoadBalancers[*].LoadBalancerArn' --output text)
+          LB_ARNS=$(aws elbv2 describe-load-balancers \
+            --region eu-west-2 \
+            --query 'LoadBalancers[*].LoadBalancerArn' \
+            --output text)
           for ARN in $LB_ARNS; do
-            echo "Deleting load balancer: $ARN"
-            aws elbv2 delete-load-balancer --load-balancer-arn $ARN --region eu-west-2
+            CLUSTER_TAG=$(aws elbv2 describe-tags \
+              --resource-arns "$ARN" \
+              --region eu-west-2 \
+              --query "TagDescriptions[0].Tags[?Key=='kubernetes.io/cluster/codeserver-cluster'].Value" \
+              --output text)
+            if [ "$CLUSTER_TAG" = "owned" ] || [ "$CLUSTER_TAG" = "shared" ]; then
+              echo "Deleting load balancer owned by codeserver-cluster: $ARN"
+              aws elbv2 delete-load-balancer \
+                --load-balancer-arn "$ARN" \
+                --region eu-west-2
+            else
+              echo "Skipping unrelated load balancer: $ARN"
+            fi
           done
-          sleep 30
+          sleep 60
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
