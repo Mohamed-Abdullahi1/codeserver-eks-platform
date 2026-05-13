@@ -79,7 +79,7 @@ jobs:
 
       - name: Apply root app
         run: |
-          kubectl apply -f ../../kubernetes/apps/root-app.yaml
+          kubectl apply -f ../../kubernetes/argocd/root-app.yaml
 
       - name: Wait for ArgoCD to sync
         run: |
