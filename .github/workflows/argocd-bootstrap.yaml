@@ -52,7 +52,12 @@ jobs:
 
       - name: Terraform validate
         run: terraform validate
-
+      
+      - name: Import existing ArgoCD Helm release
+        continue-on-error: true
+        run: |
+          terraform import module.argocd.helm_release.argocd argocd/argocd || true
+          
       - name: Terraform apply
         run: terraform apply -auto-approve
 
