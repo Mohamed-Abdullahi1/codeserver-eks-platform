@@ -3,19 +3,20 @@ kind: Application
 metadata:
   name: cluster-issuer
   namespace: argocd
+
 spec:
   project: default
 
   source:
     repoURL: https://github.com/Mohamed-Abdullahi1/codeserver-eks-platform
-    targetRevision: HEAD 
+    targetRevision: HEAD
     path: kubernetes/deployments/cert-manager
 
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
 
-  syncPolicy: 
-  automated:
-    prune: true
-    selfHeal: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
