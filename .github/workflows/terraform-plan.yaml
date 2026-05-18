@@ -23,6 +23,18 @@ jobs:
       run:
         working-directory: infra
 
+    env:
+      AWS_REGION: eu-west-2
+      TF_VAR_hosted_zone_id: ${{ secrets.TF_VAR_hosted_zone_id }}
+      TF_VAR_ecr_repository_url: ${{ secrets.TF_VAR_ECR_REPOSITORY_URL }}
+      TF_VAR_domain_name: codeserver.moabdullahi.uk
+      TF_VAR_local_admin_arn: ${{ secrets.TF_VAR_LOCAL_ADMIN_ARN }}
+      TF_VAR_github_actions_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+      TF_VAR_vpc_cidr: 10.0.0.0/16
+      TF_VAR_public_subnet_cidrs: '["10.0.1.0/24", "10.0.2.0/24"]'
+      TF_VAR_private_subnet_cidrs: '["10.0.11.0/24", "10.0.12.0/24"]'
+      TF_VAR_availability_zones: '["eu-west-2a", "eu-west-2b"]'
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,22 +47,24 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
 
       - name: Terraform init
-        run: terraform init
+        run: terraform init -input=false
 
       - name: Terraform fmt check
         run: terraform fmt -check -recursive
 
       - name: Terraform validate
         run: terraform validate
-      
+
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: infra
           framework: terraform
           soft_fail: true
-    
+
       - name: Terraform plan
         run: terraform plan -out=tfplan
