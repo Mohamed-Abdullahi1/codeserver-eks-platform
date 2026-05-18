@@ -1,39 +1,27 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
-
 metadata:
   name: code-server
   namespace: code-server
-
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
-
-    external-dns.alpha.kubernetes.io/hostname: codeserver.moabdullahi.uk
-
 spec:
-  ingressClassName: alb
+  ingressClassName: nginx
 
   rules:
     - host: codeserver.moabdullahi.uk
-
       http:
         paths:
           - path: /
             pathType: Prefix
-
             backend:
               service:
                 name: code-server
-
                 port:
                   number: 80
 
   tls:
     - hosts:
         - codeserver.moabdullahi.uk
-
       secretName: code-server-tls

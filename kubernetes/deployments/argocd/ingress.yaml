@@ -1,22 +1,16 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
-
 metadata:
   name: argocd-ingress
   namespace: argocd
 
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/backend-protocol: HTTPS
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
-
-    external-dns.alpha.kubernetes.io/hostname: argocd.codeserver.moabdullahi.uk
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 
 spec:
-  ingressClassName: alb
+  ingressClassName: nginx
 
   rules:
     - host: argocd.codeserver.moabdullahi.uk
