@@ -4,11 +4,15 @@ metadata:
   name: argocd-ingress
   namespace: argocd
   annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+
 spec:
-  ingressClassName: nginx
+  ingressClassName: alb
+
   rules:
     - host: argocd.codeserver.moabdullahi.uk
       http:
@@ -20,6 +24,7 @@ spec:
                 name: argocd-server
                 port:
                   number: 443
+
   tls:
     - secretName: argocd-tls
       hosts:
