@@ -1,4 +1,6 @@
-# GitOps Kubernetes Platform on AWS EKS
+<h1 align="center">GitOps Kubernetes Platform on AWS EKS</h1>
+
+<div align="center">
 
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)
 ![Amazon EKS](https://img.shields.io/badge/Amazon%20EKS-FF9900?style=for-the-badge&logo=amazoneks&logoColor=white)
@@ -15,6 +17,7 @@
 ![ExternalDNS](https://img.shields.io/badge/ExternalDNS-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)
 ![Route53](https://img.shields.io/badge/Route53-8C4FFF?style=for-the-badge&logo=amazonroute53&logoColor=white)
 
+</div>
 ## Overview
 
 A production-grade Kubernetes platform on AWS EKS, built to reflect how platforms are actually run rather than how they are typically demonstrated.
