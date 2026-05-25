@@ -21,8 +21,6 @@
 
 ## Overview
 
-## Overview
-
 Production-grade GitOps Kubernetes platform running on AWS EKS, designed around secure infrastructure automation, declarative deployments and reproducible platform operations.
 
 Infrastructure is provisioned entirely through Terraform across a custom multi-AZ VPC with public and private subnets. Remote Terraform state is stored in S3 using native state locking. The EKS cluster is bootstrapped through Helm, after which ArgoCD assumes control of all platform components using the App-of-Apps pattern.
