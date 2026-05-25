@@ -39,7 +39,9 @@ The platform is live and accessible over HTTPS at [codeserver.moabdullahi.uk](ht
 
 ![code-server](docs/code-server-live.png)
 
-[Watch Live Demo](docs/eks-platform-live-demo.mp4)
+## Live Demo
+
+[View Platform Demo]://github.com/user-attachments/assets/700ff93b-0cf5-447d-b8f3-4c016e850525
 
 ## Key Features
 
