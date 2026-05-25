@@ -37,6 +37,8 @@ The deployed workload is code-server, a self-hosted VS Code environment running 
 
 The platform is live and accessible over HTTPS at [codeserver.moabdullahi.uk](https://codeserver.moabdullahi.uk).
 
+![code-server](docs/code-server-live.png)
+
 [Watch Live Demo](docs/eks-platform-live-demo.mp4)
 
 ## Key Features
@@ -94,9 +96,22 @@ Platform components are isolated into dedicated namespaces:
 
 CI/CD workflows are handled through GitHub Actions, which build and push container images to ECR and apply infrastructure changes through Terraform. ArgoCD continuously monitors the repository and reconciles manifest changes automatically.
 
+## GitOps Management
+
+ArgoCD continuously reconciles platform resources from Git using the App-of-Apps pattern.
+
+![ArgoCD Dashboard](docs/argocd-dashboard.png)
+
+## Platform Observability
+
+Cluster observability is provided through Prometheus and Grafana using the kube-prometheus-stack.
+
+![Grafana Dashboard](docs/grafana-dashboard.png)
+
+
 ## Pipeline Execution
 
-## Terraform Plan Pipeline
+### Terraform Plan Pipeline
 
 The Terraform plan pipeline validates infrastructure changes before deployment by running formatting checks, validation, security analysis with Checkov and Terraform plan generation through GitHub Actions using OIDC authentication.
 
