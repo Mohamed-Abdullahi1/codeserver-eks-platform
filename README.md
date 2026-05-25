@@ -21,13 +21,19 @@
 
 ## Overview
 
-A production-grade Kubernetes platform on AWS EKS, built to reflect how platforms are actually run rather than how they are typically demonstrated.
+## Overview
 
-Infrastructure is provisioned entirely through Terraform across a custom VPC with public and private subnets, deployed over multiple availability zones. State is managed remotely in S3 using native locking. The EKS cluster is bootstrapped with ArgoCD via a Helm release, after which all platform components are reconciled from Git using the App-of-Apps pattern.
+Production-grade GitOps Kubernetes platform running on AWS EKS, designed around secure infrastructure automation, declarative deployments and reproducible platform operations.
 
-Platform services include ingress-nginx for traffic routing, cert-manager for automated TLS provisioning via Let's Encrypt, ExternalDNS for dynamic Route 53 record management, and Prometheus with Grafana for cluster observability. CI/CD is handled through GitHub Actions using OIDC authentication, with no long-lived AWS credentials stored anywhere.
+Infrastructure is provisioned entirely through Terraform across a custom multi-AZ VPC with public and private subnets. Remote Terraform state is stored in S3 using native state locking. The EKS cluster is bootstrapped through Helm, after which ArgoCD assumes control of all platform components using the App-of-Apps pattern.
 
-The deployed workload is code-server, a self-hosted VS Code environment running inside the cluster, accessible over HTTPS with fully automated DNS and certificate management.
+The platform includes ingress-nginx for ingress routing, cert-manager for automated TLS issuance through Let's Encrypt, ExternalDNS for Route 53 record management, and Prometheus with Grafana for cluster observability.
+
+CI/CD workflows are handled through GitHub Actions using OIDC federation, eliminating long-lived AWS credentials from the pipeline. AWS access inside the cluster is scoped through IRSA, with dedicated IAM roles mapped directly to Kubernetes service accounts.
+
+Workloads run exclusively in private subnets behind an internet-facing Network Load Balancer. Persistent storage is provisioned dynamically through the AWS EBS CSI driver.
+
+The deployed workload is code-server, a self-hosted VS Code environment running inside Kubernetes and exposed securely over HTTPS with fully automated DNS and certificate management.
 
 ## Live Application
 
@@ -37,28 +43,30 @@ The platform is live and accessible over HTTPS at [codeserver.moabdullahi.uk](ht
 
 ## Key Features
 
-- EKS cluster deployed across multiple Availability Zones with managed node groups
-- Private subnet isolation for all workloads
-- Internet-facing Network Load Balancer for controlled ingress
-- GitOps-driven deployments using ArgoCD with the App-of-Apps pattern
-- Automated DNS management via ExternalDNS and Route 53
-- Automatic TLS certificate issuance and renewal via cert-manager and Let's Encrypt
-- IRSA used throughout, no broad node IAM permissions
-- CI/CD pipelines via GitHub Actions with OIDC authentication, no static AWS credentials
-- Docker image scanning with Trivy before push to ECR
-- Terraform static analysis with Checkov in the plan pipeline
-- Persistent storage provisioned dynamically using the AWS EBS CSI driver
-- Full cluster observability with Prometheus and Grafana
+- Multi-AZ AWS EKS cluster with managed node groups
+- Workload isolation through private subnet architecture
+- Internet-facing Network Load Balancer with ingress-nginx routing
+- GitOps reconciliation using ArgoCD and the App-of-Apps pattern
+- Automated Route 53 DNS management via ExternalDNS
+- Automated TLS issuance and renewal through cert-manager and Let's Encrypt
+- Fine-grained AWS access control using IRSA
+- OIDC-secured GitHub Actions CI/CD pipelines with zero static AWS credentials
+- Container image security scanning with Trivy before ECR push
+- Terraform static analysis integrated through Checkov
+- Dynamic persistent storage provisioning via the AWS EBS CSI driver
+- Cluster observability with Prometheus and Grafana
 
 ## Key Outcomes
 
-- Resolved a dynamic volume provisioning failure caused by the `gp3` storage class not being available by default on EKS. Fixed by installing and configuring the AWS EBS CSI driver with a dedicated IRSA role, enabling Kubernetes to provision EBS volumes without relying on the deprecated in-tree provisioner
+- Resolved dynamic EBS volume provisioning failures caused by the absence of a default `gp3` storage class on EKS by deploying the AWS EBS CSI driver with IRSA-based authentication, replacing the deprecated in-tree provisioner
 
-- Scoped AWS permissions at the service account level using IRSA for ExternalDNS, rather than attaching broad permissions to the node IAM role. Each component that needs AWS access has its own role bound to a specific Kubernetes service account
+- Implemented fine-grained AWS access control through IRSA by binding dedicated IAM roles directly to Kubernetes service accounts instead of relying on broad node IAM permissions
 
-- Automated DNS and TLS end to end. When an ingress resource is created or updated, ExternalDNS updates Route 53 automatically and cert-manager handles certificate issuance and renewal without any manual steps
+- Automated end-to-end DNS and TLS reconciliation through ExternalDNS and cert-manager, enabling Route 53 record management and Let's Encrypt certificate issuance directly from Kubernetes ingress resources
 
-- The cluster is reproducible through Terraform, covering the VPC, EKS cluster, IAM roles, add-ons, and ArgoCD bootstrap. EKS teardown is handled by the destroy pipeline, which cleans up Kubernetes-created AWS resources (load balancers, security groups) before running `terraform destroy`
+- Built reproducible infrastructure workflows through Terraform covering VPC networking, EKS provisioning, IAM configuration, platform add-ons and ArgoCD bootstrap
+
+- Automated Kubernetes-aware infrastructure teardown through a dedicated destroy pipeline capable of cleaning up Kubernetes-created AWS resources before executing `terraform destroy`
 
 ## Architecture
 
@@ -66,27 +74,35 @@ The platform is live and accessible over HTTPS at [codeserver.moabdullahi.uk](ht
 
 ## Architecture Overview
 
-Terraform provisions the VPC and EKS cluster across two Availability Zones. ArgoCD is installed once via a Helm release in Terraform, and from that point manages all platform components from Git using the App-of-Apps pattern. When a change is pushed to the repository, ArgoCD reconciles the cluster to match the desired state.
+Terraform provisions the AWS infrastructure, including the VPC, EKS cluster, IAM configuration and supporting platform components across two Availability Zones.
 
-The VPC is split into public and private subnets across both zones:
+ArgoCD is bootstrapped initially through a Helm release in Terraform, after which all Kubernetes resources are managed declaratively from Git using the App-of-Apps pattern. Changes pushed to the repository are reconciled automatically against the cluster state.
 
-- Public subnets host the Internet Gateway and Network Load Balancer
-- Private subnets host all EKS worker nodes and workloads
-- A NAT Gateway in the public subnet handles outbound traffic from private workloads, including pulling images from ECR
+The VPC is segmented across public and private subnets in both Availability Zones:
 
-Traffic flows from the user through Route 53 at `codeserver.moabdullahi.uk`, into the Internet Gateway, down to the Network Load Balancer, and into the NGINX Ingress controller running inside the cluster. The ingress controller routes requests to the appropriate Kubernetes service.
+- Public subnets host the Internet Gateway, NAT Gateway and Network Load Balancer
+- Private subnets host all EKS worker nodes and Kubernetes workloads
+- Outbound traffic from private workloads is routed through the NAT Gateway, including image pulls from ECR
 
-Workloads are organised into dedicated namespaces inside the EKS cluster:
+Traffic enters through Route 53 at `codeserver.moabdullahi.uk`, passes through the Network Load Balancer and into the NGINX Ingress controller running inside the cluster. The ingress layer routes requests to the appropriate Kubernetes services.
 
-- `monitoring` namespace runs Prometheus and Grafana
-- `code-server` namespace runs the application pod and service
-- `cert-manager` namespace handles TLS certificate issuance via Let's Encrypt
-- `external-dns` namespace manages Route 53 DNS records automatically
-- `argocd` namespace runs the GitOps controller
+Platform components are isolated into dedicated namespaces:
 
-On the CI/CD side, developers push to GitHub, GitHub Actions builds and pushes the Docker image to ECR, and Terraform state is stored remotely in S3. ArgoCD then picks up any manifest changes and reconciles the cluster automatically.
+- `monitoring` runs Prometheus and Grafana
+- `code-server` runs the application workloads and services
+- `cert-manager` handles TLS issuance through Let's Encrypt
+- `external-dns` manages Route 53 DNS reconciliation
+- `argocd` runs the GitOps control plane
+
+CI/CD workflows are handled through GitHub Actions, which build and push container images to ECR and apply infrastructure changes through Terraform. ArgoCD continuously monitors the repository and reconciles manifest changes automatically.
 
 ## Pipeline Execution
+
+## Terraform Plan Pipeline
+
+The Terraform plan pipeline validates infrastructure changes before deployment by running formatting checks, validation, security analysis with Checkov and Terraform plan generation through GitHub Actions using OIDC authentication.
+
+![Terraform Plan](docs/terraform-plan-workflow.png)
 
 ### Terraform Apply
 
@@ -100,7 +116,7 @@ Runs on merge to main. Applies infrastructure changes using OIDC-based authentic
 
 Installs ArgoCD onto the cluster via Helm after the EKS cluster is provisioned, then applies the root application to hand control over to GitOps.
 
-![ArgoCD Bootstrap](docs/argocd-bootstrap-flow.png)
+![ArgoCD Bootstrap](docs/argocd-bootstrap-workflow.png)
 
 ---
 
@@ -157,14 +173,14 @@ codeserver-eks-platform/
 
 ## Security Considerations
 
-- EKS worker nodes run in private subnets with no public IP addresses
-- IRSA used for ExternalDNS and EBS CSI driver, permissions scoped to specific Kubernetes service accounts, not node roles
-- NGINX Ingress only accepts traffic from the NLB
-- HTTPS enforced via cert-manager and Let's Encrypt
-- OIDC authentication for GitHub Actions, no static AWS credentials in CI/CD
-- Terraform state stored remotely in S3 with native state locking (Terraform v1.10+)
-- Docker images scanned with Trivy before being pushed to ECR
-- Terraform code scanned with Checkov on every pull request
+- EKS worker nodes run exclusively in private subnets with no public IP exposure
+- IRSA implemented for ExternalDNS and the EBS CSI driver, with AWS permissions scoped directly to Kubernetes service accounts rather than node IAM roles
+- ingress-nginx only accepts traffic originating from the Network Load Balancer
+- HTTPS enforced through cert-manager and Let's Encrypt
+- GitHub Actions pipelines authenticated through OIDC federation with zero static AWS credentials
+- Terraform state stored remotely in S3 using native state locking
+- Container images scanned with Trivy before push to ECR
+- Terraform code analysed with Checkov on every pull request
 
 ## How to Reproduce This Project
 
