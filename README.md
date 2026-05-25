@@ -41,7 +41,8 @@ The platform is live and accessible over HTTPS at [codeserver.moabdullahi.uk](ht
 
 ## Live Demo
 
-[View Platform Demo]://github.com/user-attachments/assets/700ff93b-0cf5-447d-b8f3-4c016e850525
+[View Platform Demo](https://github.com/user-attachments/assets/700ff93b-0cf5-447d-b8f3-4c016e850525)
+
 
 ## Key Features
 
