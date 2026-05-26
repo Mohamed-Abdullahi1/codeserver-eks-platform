@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim AS downloader
 
-ARG CODE_SERVER_VERSION=4.105.1
+ARG CODE_SERVER_VERSION=4.113.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
