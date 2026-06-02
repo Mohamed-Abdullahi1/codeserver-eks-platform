@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && curl -fL "https://github.com/coder/code-server/releases/download/v${CODE_SERVER_VERSION}/code-server-${CODE_SERVER_VERSION}-linux-amd64.tar.gz" \
     | tar -xz --strip-components=1 -C /usr/local/lib/code-server
 
+
 FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
