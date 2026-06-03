@@ -16,7 +16,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: code-server
-        image: 454374565233.dkr.ecr.eu-west-2.amazonaws.com/code-server:fa81bae97fc94b6ee3da7cd49d048edbd11812d2
+        image: 454374565233.dkr.ecr.eu-west-2.amazonaws.com/code-server:3d8211b1dabd5b07c7e4d36c16af374ce2361c8d
         ports:
         - containerPort: 8080
         env: 
