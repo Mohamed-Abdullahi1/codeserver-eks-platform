@@ -26,6 +26,7 @@ COPY --from=downloader /usr/local/lib/code-server /usr/local/lib/code-server
 RUN ln -s /usr/local/lib/code-server/bin/code-server /usr/local/bin/code-server
 
 USER coder
+
 WORKDIR /home/coder
 
 EXPOSE 8080
