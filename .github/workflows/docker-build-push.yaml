@@ -64,8 +64,8 @@ jobs:
 
       - name: Commit and push updated manifest
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
           git add kubernetes/deployments/code-server/deployment.yaml
           git commit -m "chore: bump image tag to ${{ github.sha }}" || echo "No changes to commit"
           git push
