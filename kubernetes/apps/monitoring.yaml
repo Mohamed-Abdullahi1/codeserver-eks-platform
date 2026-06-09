@@ -17,11 +17,10 @@ spec:
         prometheus:
           ingress:
             enabled: true
-            ingressClassName: nginx
+            ingressClassName: traefik
 
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
-              nginx.ingress.kubernetes.io/rewrite-target: /
 
             hosts:
               - prometheus.codeserver.moabdullahi.uk
@@ -45,7 +44,7 @@ spec:
 
           ingress:
             enabled: true
-            ingressClassName: nginx
+            ingressClassName: traefik
 
             annotations:
               cert-manager.io/cluster-issuer: letsencrypt-prod
