@@ -17,9 +17,7 @@ spec:
         domainFilters:
           - codeserver.moabdullahi.uk
         policy: sync
-        serviceAccount:
-          annotations:
-            eks.amazonaws.com/role-arn: arn:aws:iam::454374565233:role/external-dns-role
+        serviceAccount:       
   destination:
     server: https://kubernetes.default.svc
     namespace: external-dns

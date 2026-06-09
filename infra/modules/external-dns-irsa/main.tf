@@ -3,23 +3,14 @@ data "aws_iam_policy_document" "external_dns_trust" {
     effect = "Allow"
 
     principals {
-      type        = "Federated"
-      identifiers = [var.oidc_provider_arn]
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
     }
 
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-
-    condition {
-      test     = "StringEquals"
-      variable = "${var.oidc_provider_url}:sub"
-      values   = ["system:serviceaccount:${var.namespace}:${var.service_account_name}"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "${var.oidc_provider_url}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
+    actions = [
+      "sts:AssumeRole",
+      "sts:TagSession"
+    ]
   }
 }
 
@@ -55,4 +46,15 @@ resource "aws_iam_role" "external_dns" {
 resource "aws_iam_role_policy_attachment" "external_dns" {
   role       = aws_iam_role.external_dns.name
   policy_arn = aws_iam_policy.external_dns.arn
+}
+
+resource "aws_eks_pod_identity_association" "external_dns" {
+  cluster_name    = var.cluster_name
+  namespace       = var.namespace
+  service_account = var.service_account_name
+  role_arn        = aws_iam_role.external_dns.arn
+
+  depends_on = [
+    aws_iam_role_policy_attachment.external_dns
+  ]
 }
