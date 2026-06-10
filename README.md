@@ -187,14 +187,29 @@ codeserver-eks-platform/
 
 ## Security Considerations
 
-- EKS worker nodes run exclusively in private subnets with no public IP exposure
-- - EKS Pod Identity implemented for ExternalDNS and the EBS CSI driver, with AWS permissions scoped to dedicated workload IAM roles rather than node IAM roles
-- Traefik serves as the cluster ingress layer behind an AWS Network Load Balancer
-- HTTPS enforced through cert-manager and Let's Encrypt
-- GitHub Actions pipelines authenticated through OIDC federation with zero static AWS credentials
-- Terraform state stored remotely in S3 using native state locking
-- Container images scanned with Trivy before push to ECR
-- Terraform code analysed with Checkov on every pull request
+- EKS worker nodes run exclusively in private subnets with no direct public IP exposure
+- AWS permissions are delivered through EKS Pod Identity, allowing workloads such as ExternalDNS and the EBS CSI driver to assume dedicated IAM roles with least-privilege access
+- GitHub Actions authenticates to AWS through OIDC federation, eliminating the need for long-lived AWS credentials in CI/CD workflows
+- HTTPS is enforced across all exposed services using cert-manager and Let's Encrypt certificates issued automatically from Kubernetes ingress resources
+- Route 53 DNS records are managed declaratively through ExternalDNS, reducing manual DNS configuration and infrastructure drift
+- Traefik serves as the cluster ingress layer behind an AWS Network Load Balancer, providing controlled entry into the Kubernetes environment
+- Terraform state is stored remotely in S3 using native state locking to protect against concurrent infrastructure modifications
+- Container images are scanned with Trivy before being pushed to Amazon ECR
+- Infrastructure code is analysed with Checkov during pull requests to identify potential security and compliance issues before deployment
+- Pre-commit hooks enforce repository standards by validating configuration files, preventing merge conflicts, detecting potential secrets through Gitleaks and automatically correcting common formatting issues before code reaches the repository
+- Platform components operate with dedicated namespaces and service accounts to maintain separation of responsibilities across the cluster
+
+## Cost Optimisation
+
+The platform was designed to balance production-style architecture with cost efficiency during development.
+
+- Managed node groups use `t3.medium` instances to avoid overprovisioning compute resources
+- Multiple platform services share the same Kubernetes cluster, reducing infrastructure overhead
+- Worker nodes run in private subnets across two Availability Zones, providing resilience while maintaining a small cluster footprint
+- Dynamic storage provisioning through the AWS EBS CSI driver ensures volumes are created only when required
+- Infrastructure is fully managed through Terraform, allowing environments to be created and destroyed on demand
+- GitOps reconciliation through ArgoCD reduces operational overhead by automating platform management
+- A dedicated Terraform destroy pipeline removes all AWS resources, including Kubernetes-created infrastructure, helping prevent unnecessary cloud spend when the platform is not in use
 
 ## How to Reproduce This Project
 
