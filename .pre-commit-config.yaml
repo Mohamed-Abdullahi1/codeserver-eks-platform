@@ -12,3 +12,9 @@ repos:
     rev: v1.99.5
     hooks:
       - id: terraform_fmt
+      - id: terraform_validate
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
